@@ -17,257 +17,419 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
-        /* Apply DM Sans font */
+        /* Base and Font */
         body {
             font-family: 'DM Sans', sans-serif;
             margin: 0;
             overflow-x: hidden;
-            background-color: #000; /* Fallback */
+            background-color: #05000a; /* Deep dark purple/black */
+            color: #fff;
         }
 
-        /* Floating background blobs */
-        @keyframes blob {
-            0% { transform: translate(0px, 0px) scale(1); }
-            33% { transform: translate(30px, -50px) scale(1.1); }
-            66% { transform: translate(-20px, 20px) scale(0.9); }
-            100% { transform: translate(0px, 0px) scale(1); }
+        /* Glassmorphism utilities */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
         }
 
-        .animate-blob {
-            animation: blob 8s infinite alternate;
+        .glass-btn {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.4), rgba(217, 70, 239, 0.4));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(217, 70, 239, 0.3);
+            transition: all 0.3s ease;
         }
-
-        .animation-delay-2000 {
-            animation-delay: 2s;
-        }
-
-        .animation-delay-4000 {
-            animation-delay: 4s;
-        }
-
-        /* Glass button hover effect */
         .glass-btn:hover {
-            box-shadow: 0 0 20px rgba(168, 85, 247, 0.6);
+            box-shadow: 0 0 25px rgba(217, 70, 239, 0.6);
             transform: translateY(-2px);
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.6), rgba(217, 70, 239, 0.6));
         }
 
-        /* Fix date picker icon color on dark backgrounds */
+        /* Input styling */
         ::-webkit-calendar-picker-indicator {
-            filter: invert(1) hue-rotate(180deg) brightness(1.5);
+            filter: invert(1) hue-rotate(180deg) brightness(1.5) sepia(0.5) saturate(3);
             cursor: pointer;
         }
 
-        /* Custom scrollbar for favorites if needed on small screens */
-        ::-webkit-scrollbar {
-            width: 8px;
+        /* Background Orbs Animation */
+        @keyframes orb-float {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(40px, -60px) scale(1.2); }
+            66% { transform: translate(-30px, 30px) scale(0.8); }
+            100% { transform: translate(0px, 0px) scale(1); }
         }
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05); 
+        .animate-orb { animation: orb-float 10s infinite alternate ease-in-out; }
+        .delay-2000 { animation-delay: 2s; }
+        .delay-4000 { animation-delay: 4s; }
+
+        /* Floating Sparkles Animation */
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #d946ef, 0 0 20px #a855f7;
+            animation: floatUp linear infinite, twinkle ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 1;
         }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(168, 85, 247, 0.5); 
-            border-radius: 4px;
+        @keyframes floatUp {
+            from { transform: translateY(100vh); }
+            to { transform: translateY(-10vh); }
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(168, 85, 247, 0.8); 
+        @keyframes twinkle {
+            from { opacity: 0.2; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1.5); }
+        }
+
+        /* CSS Birthday Cake Animations */
+        .flame {
+            animation: flicker 0.6s ease-in-out infinite alternate;
+            transform-origin: bottom center;
+        }
+        @keyframes flicker {
+            0% { transform: scale(1) rotate(-2deg); opacity: 0.9; box-shadow: 0 0 15px #facc15, 0 0 30px #f97316; }
+            50% { transform: scale(1.1) rotate(2deg); opacity: 1; box-shadow: 0 0 25px #facc15, 0 0 45px #f97316; }
+            100% { transform: scale(0.9) rotate(-1deg); opacity: 0.8; box-shadow: 0 0 10px #facc15, 0 0 20px #f97316; }
+        }
+        .cake-layer {
+            box-shadow: inset 0 -10px 15px rgba(0,0,0,0.3), 0 5px 15px rgba(0,0,0,0.4);
+        }
+        .drip {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        /* Chat Bubble Glowing Effect */
+        .glow-bubble {
+            box-shadow: 0 0 15px rgba(217, 70, 239, 0.2), inset 0 0 10px rgba(168, 85, 247, 0.1);
+        }
+        
+        /* Smooth section transitions */
+        .section-hidden {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+            position: absolute;
+            visibility: hidden;
+        }
+        .section-visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+            position: relative;
+            visibility: visible;
+        }
+        .transition-wrapper {
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-black via-purple-950 to-black min-h-screen flex items-center justify-center relative px-4 py-10 overflow-x-hidden text-white">
+<body class="bg-gradient-to-br from-[#05000a] via-[#1a0033] to-[#0a0014] min-h-screen flex items-center justify-center relative px-4 py-12 overflow-x-hidden text-white">
 
-    <!-- Background glowing orbs matching black and purple theme -->
-    <div class="absolute top-1/4 left-1/4 w-72 h-72 bg-purple-600 rounded-full mix-blend-screen filter blur-[120px] opacity-40 animate-blob pointer-events-none"></div>
-    <div class="absolute bottom-1/3 right-1/4 w-80 h-80 bg-fuchsia-700 rounded-full mix-blend-screen filter blur-[120px] opacity-30 animate-blob animation-delay-2000 pointer-events-none"></div>
-    <div class="absolute bottom-1/4 left-1/3 w-64 h-64 bg-indigo-900 rounded-full mix-blend-screen filter blur-[100px] opacity-50 animate-blob animation-delay-4000 pointer-events-none"></div>
+    <!-- Background Glowing Orbs -->
+    <div class="fixed top-1/4 left-1/4 w-[30rem] h-[30rem] bg-purple-700/30 rounded-full mix-blend-screen filter blur-[100px] animate-orb pointer-events-none z-0"></div>
+    <div class="fixed bottom-1/4 right-1/4 w-[25rem] h-[25rem] bg-fuchsia-600/20 rounded-full mix-blend-screen filter blur-[120px] animate-orb delay-2000 pointer-events-none z-0"></div>
+    <div class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-indigo-900/20 rounded-full mix-blend-screen filter blur-[150px] animate-orb delay-4000 pointer-events-none z-0"></div>
+
+    <!-- Container for dynamic JS sparkles -->
+    <div id="sparkle-container" class="fixed inset-0 overflow-hidden pointer-events-none z-0"></div>
 
     <!-- Main Glass Card Container -->
-    <div class="relative z-10 w-full max-w-2xl bg-white/5 backdrop-blur-xl border border-purple-500/30 p-8 sm:p-10 rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] text-center transition-all duration-700 overflow-hidden" id="main-card">
+    <div class="relative z-10 w-full max-w-xl lg:max-w-3xl glass-panel rounded-[2rem] p-6 sm:p-10 text-center transition-all duration-700 overflow-hidden" id="main-card">
         
-        <!-- Login Section -->
-        <div id="login-section" class="transition-all duration-700 ease-in-out opacity-100 transform scale-100 w-full flex flex-col items-center justify-center min-h-[400px]">
-            <div class="mb-4 text-purple-400">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
+        <!-- ================= LOGIN SECTION ================= -->
+        <div id="login-section" class="transition-wrapper section-visible w-full flex flex-col items-center justify-center min-h-[500px]">
+            
+            <!-- Lock Icon -->
+            <div class="mb-6 relative">
+                <div class="absolute inset-0 bg-fuchsia-500 rounded-full blur-[20px] opacity-40"></div>
+                <div class="relative bg-white/10 p-4 rounded-full border border-white/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-fuchsia-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </div>
             </div>
-            <h1 class="text-3xl font-bold mb-2 text-white">
-                Restricted Area
+
+            <h1 class="text-3xl sm:text-4xl font-bold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-fuchsia-300">
+                Surprise Awaits
             </h1>
-            <p class="text-purple-200/70 mb-8 font-light text-sm sm:text-base">
-                Please verify your identity to access your surprise.
+            <p class="text-purple-200/70 mb-10 font-light text-sm sm:text-base max-w-sm">
+                Only the birthday girl has the keys to this room. Please verify your identity.
             </p>
             
-            <form id="login-form" class="space-y-5 flex flex-col items-center w-full max-w-sm mx-auto">
-                <div class="w-full text-left">
-                    <label for="name" class="block text-sm font-medium text-purple-200 mb-1 pl-1">Full Name</label>
-                    <input type="text" id="name" required autocomplete="off" class="w-full bg-black/40 border border-purple-500/40 rounded-xl p-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all" placeholder="Enter your full name">
+            <form id="login-form" class="space-y-6 flex flex-col items-center w-full max-w-xs sm:max-w-sm mx-auto">
+                <div class="w-full text-left group">
+                    <label for="name" class="block text-xs uppercase tracking-widest font-semibold text-purple-300 mb-2 pl-1 transition-colors group-focus-within:text-fuchsia-300">Full Name</label>
+                    <input type="text" id="name" required autocomplete="off" 
+                           class="w-full bg-black/50 border border-purple-500/40 rounded-2xl p-4 text-white placeholder-gray-500/60 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent transition-all shadow-inner" 
+                           placeholder="Enter your name">
                 </div>
-                <div class="w-full text-left">
-                    <label for="dob" class="block text-sm font-medium text-purple-200 mb-1 pl-1">Date of Birth</label>
-                    <input type="date" id="dob" required class="w-full bg-black/40 border border-purple-500/40 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                <div class="w-full text-left group">
+                    <label for="dob" class="block text-xs uppercase tracking-widest font-semibold text-purple-300 mb-2 pl-1 transition-colors group-focus-within:text-fuchsia-300">Date of Birth</label>
+                    <input type="date" id="dob" required 
+                           class="w-full bg-black/50 border border-purple-500/40 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent transition-all shadow-inner">
                 </div>
                 
-                <!-- Error Message Container -->
-                <p id="error-msg" class="text-red-400 text-sm font-semibold h-5 opacity-0 transition-opacity duration-300">
-                    Incorrect credentials. Please try again!
+                <!-- Error Message -->
+                <p id="error-msg" class="text-pink-400 text-sm font-semibold h-5 opacity-0 transition-opacity duration-300 drop-shadow-[0_0_5px_rgba(244,114,182,0.8)]">
+                    Incorrect credentials. Try again!
                 </p>
 
-                <button type="submit" class="glass-btn mt-2 w-full relative inline-flex items-center justify-center px-8 py-3.5 font-semibold text-white bg-purple-600/30 border border-purple-400/50 rounded-xl backdrop-blur-md transition-all duration-300 ease-in-out hover:bg-purple-600/50 focus:outline-none focus:ring-4 focus:ring-purple-500/50">
-                    Unlock Surprise
+                <button type="submit" class="glass-btn mt-4 w-full relative inline-flex items-center justify-center px-8 py-4 font-bold tracking-wide text-white rounded-2xl uppercase text-sm">
+                    Unlock Magic
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
+                        <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
                     </svg>
                 </button>
             </form>
         </div>
 
-        <!-- Surprise Section (Initially Hidden) -->
-        <div id="surprise-section" class="hidden opacity-0 transform scale-95 transition-all duration-700 ease-out w-full flex flex-col items-center">
+        <!-- ================= SURPRISE SECTION ================= -->
+        <div id="surprise-section" class="transition-wrapper section-hidden w-full flex flex-col items-center">
             
+            <!-- Animated CSS Birthday Cake -->
+            <div class="relative w-48 h-48 mx-auto mb-8 mt-4 flex flex-col items-center justify-end">
+                <!-- Sparkles around cake -->
+                <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxjaXJjbGUgY3g9IjIwJSIgY3k9IjMwJSIgcj0iMSIgZmlsbD0iI2ZmZiIvPjxjaXJjbGUgY3g9IjgwJSIgY3k9IjQwJSIgcj0iMS41IiBmaWxsPSIjZmZmIi8+PGNpcmNsZSBjeD0iNjAlIiBjeT0iMTAlIiByPSIyIiBmaWxsPSIjZmZmIi8+PC9zdmc+')] opacity-50 animate-pulse z-0"></div>
+                
+                <!-- Candle & Flame -->
+                <div class="relative z-10 flex flex-col items-center mb-[-5px]">
+                    <!-- Flame -->
+                    <div class="flame w-4 h-6 bg-gradient-to-t from-yellow-300 via-orange-400 to-transparent rounded-full mb-1 border border-yellow-200/50"></div>
+                    <!-- Candle Body -->
+                    <div class="w-3 h-10 bg-gradient-to-r from-pink-300 to-fuchsia-400 rounded-sm border border-fuchsia-200">
+                        <div class="w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxwYXRoIGQ9Ik0wLDRMMSwzTDQsME0wLDBMNCw0IiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC41KSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9zdmc+')] opacity-50"></div>
+                    </div>
+                </div>
+
+                <!-- Cake Tiers -->
+                <div class="relative z-10 flex flex-col items-center w-full">
+                    <!-- Top Tier -->
+                    <div class="cake-layer w-28 h-12 bg-purple-900 rounded-t-xl relative overflow-hidden border-t-2 border-purple-400 z-30">
+                        <!-- Pink Frosting Drips -->
+                        <div class="absolute top-0 left-0 w-full flex">
+                            <div class="drip w-4 h-6 bg-fuchsia-500 rounded-b-full"></div>
+                            <div class="drip w-5 h-4 bg-fuchsia-500 rounded-b-full mt-[-2px]"></div>
+                            <div class="drip w-6 h-8 bg-fuchsia-500 rounded-b-full"></div>
+                            <div class="drip w-5 h-5 bg-fuchsia-500 rounded-b-full"></div>
+                            <div class="drip w-4 h-7 bg-fuchsia-500 rounded-b-full"></div>
+                            <div class="drip w-4 h-4 bg-fuchsia-500 rounded-b-full"></div>
+                        </div>
+                    </div>
+                    <!-- Middle Tier -->
+                    <div class="cake-layer w-36 h-12 bg-black rounded-t-lg relative border-t border-purple-500/50 z-20 mt-[-5px] flex items-center justify-center">
+                        <!-- Decorative dots -->
+                        <div class="w-full flex justify-around px-4 opacity-70">
+                            <div class="w-2 h-2 rounded-full bg-purple-400"></div>
+                            <div class="w-2 h-2 rounded-full bg-purple-400"></div>
+                            <div class="w-2 h-2 rounded-full bg-purple-400"></div>
+                            <div class="w-2 h-2 rounded-full bg-purple-400"></div>
+                        </div>
+                    </div>
+                    <!-- Bottom Tier -->
+                    <div class="cake-layer w-44 h-14 bg-gradient-to-b from-purple-800 to-purple-950 rounded-t-lg rounded-b-2xl relative border-t border-fuchsia-500/50 z-10 mt-[-5px]">
+                         <!-- Pink Frosting Drips -->
+                         <div class="absolute top-0 left-0 w-full flex">
+                            <div class="drip w-6 h-5 bg-fuchsia-500 rounded-b-full"></div>
+                            <div class="drip w-8 h-8 bg-fuchsia-500 rounded-b-full"></div>
+                            <div class="drip w-7 h-4 bg-fuchsia-500 rounded-b-full"></div>
+                            <div class="drip w-9 h-7 bg-fuchsia-500 rounded-b-full"></div>
+                            <div class="drip w-7 h-5 bg-fuchsia-500 rounded-b-full"></div>
+                            <div class="drip w-7 h-6 bg-fuchsia-500 rounded-b-full"></div>
+                        </div>
+                    </div>
+                    <!-- Plate -->
+                    <div class="w-48 h-4 bg-white/20 rounded-[100%] mt-[-5px] shadow-[0_5px_15px_rgba(217,70,239,0.3)] border border-white/30 z-0 relative">
+                        <div class="absolute inset-0 bg-fuchsia-500/20 blur-[10px] rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Header -->
-            <h1 class="text-4xl sm:text-5xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-300 via-fuchsia-300 to-purple-400 drop-shadow-[0_0_10px_rgba(216,180,254,0.5)]">
-                Happy Birthday, <br class="sm:hidden" />DUGINI VAISHALI! 🎉
+            <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-200 via-fuchsia-400 to-purple-400 drop-shadow-[0_0_15px_rgba(217,70,239,0.5)] animate-pulse">
+                Happy Birthday <br class="sm:hidden" />DUGINI VAISHALI!
             </h1>
-            <p class="text-purple-200/80 mb-8 font-light text-sm sm:text-base">
-                Welcome to your specially curated birthday dashboard.
+            <p class="text-purple-200 mb-10 font-medium tracking-wide text-sm sm:text-lg">
+                ✨ Welcome to your magical birthday dimension ✨
             </p>
 
             <!-- Her Favorites Grid -->
-            <div class="w-full bg-black/30 border border-purple-500/20 rounded-2xl p-5 mb-8 text-left">
-                <h2 class="text-xl font-semibold mb-4 text-purple-300 flex items-center border-b border-purple-500/20 pb-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-fuchsia-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
-                    </svg>
-                    Her Favorites Profile
+            <div class="w-full bg-black/40 border border-fuchsia-500/30 rounded-3xl p-6 sm:p-8 mb-10 text-left shadow-[0_0_30px_rgba(168,85,247,0.15)] relative overflow-hidden group">
+                <!-- Decorative background elements inside card -->
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-fuchsia-600/20 rounded-full blur-[40px] group-hover:bg-fuchsia-600/30 transition-colors duration-500"></div>
+                <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-600/20 rounded-full blur-[40px] group-hover:bg-purple-600/30 transition-colors duration-500"></div>
+
+                <h2 class="relative z-10 text-2xl font-bold mb-6 text-fuchsia-300 flex items-center border-b border-fuchsia-500/20 pb-4">
+                    <span class="bg-fuchsia-500/20 p-2 rounded-xl mr-3 border border-fuchsia-500/30">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-fuchsia-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                    </span>
+                    The Favorites Profile
                 </h2>
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="bg-purple-900/20 p-3 rounded-xl border border-purple-500/20 hover:bg-purple-900/40 transition-colors">
-                        <p class="text-xs text-purple-400 uppercase tracking-widest font-bold mb-1">Favourite Food</p>
-                        <p class="font-medium text-white text-lg">🍛 Briyani</p>
+                <div class="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="bg-purple-950/40 p-4 rounded-2xl border border-purple-500/20 hover:border-fuchsia-400/50 hover:bg-purple-900/50 transition-all duration-300 transform hover:-translate-y-1">
+                        <p class="text-[10px] text-fuchsia-300 uppercase tracking-widest font-bold mb-1 opacity-80">Food</p>
+                        <p class="font-bold text-white text-lg flex items-center">🍛 Biryani</p>
                     </div>
-                    <div class="bg-purple-900/20 p-3 rounded-xl border border-purple-500/20 hover:bg-purple-900/40 transition-colors">
-                        <p class="text-xs text-purple-400 uppercase tracking-widest font-bold mb-1">Favourite Colours</p>
-                        <p class="font-medium text-white text-lg">🖤 Black & 💜 Purple</p>
+                    <div class="bg-purple-950/40 p-4 rounded-2xl border border-purple-500/20 hover:border-fuchsia-400/50 hover:bg-purple-900/50 transition-all duration-300 transform hover:-translate-y-1">
+                        <p class="text-[10px] text-fuchsia-300 uppercase tracking-widest font-bold mb-1 opacity-80">Colors</p>
+                        <p class="font-bold text-white text-lg flex items-center">🖤 Black & 💜 Purple</p>
                     </div>
-                    <div class="bg-purple-900/20 p-3 rounded-xl border border-purple-500/20 hover:bg-purple-900/40 transition-colors">
-                        <p class="text-xs text-purple-400 uppercase tracking-widest font-bold mb-1">Favourite Singer</p>
-                        <p class="font-medium text-white text-lg">🎤 BTS</p>
+                    <div class="bg-purple-950/40 p-4 rounded-2xl border border-purple-500/20 hover:border-fuchsia-400/50 hover:bg-purple-900/50 transition-all duration-300 transform hover:-translate-y-1">
+                        <p class="text-[10px] text-fuchsia-300 uppercase tracking-widest font-bold mb-1 opacity-80">Singer</p>
+                        <p class="font-bold text-white text-lg flex items-center">🎤 BTS</p>
                     </div>
-                    <div class="bg-purple-900/20 p-3 rounded-xl border border-purple-500/20 hover:bg-purple-900/40 transition-colors">
-                        <p class="text-xs text-purple-400 uppercase tracking-widest font-bold mb-1">Favourite Pet</p>
-                        <p class="font-medium text-white text-lg">🐕 Max</p>
+                    <div class="bg-purple-950/40 p-4 rounded-2xl border border-purple-500/20 hover:border-fuchsia-400/50 hover:bg-purple-900/50 transition-all duration-300 transform hover:-translate-y-1 sm:col-span-2 lg:col-span-1">
+                        <p class="text-[10px] text-fuchsia-300 uppercase tracking-widest font-bold mb-1 opacity-80">Songs</p>
+                        <p class="font-bold text-white text-base leading-tight">🎶 Kpop, Hindi, Telugu, English</p>
                     </div>
-                    <div class="bg-purple-900/20 p-3 rounded-xl border border-purple-500/20 hover:bg-purple-900/40 transition-colors sm:col-span-2">
-                        <p class="text-xs text-purple-400 uppercase tracking-widest font-bold mb-1">Favourite Songs</p>
-                        <p class="font-medium text-white text-lg">🎶 Kpop, Hindi, Telugu, English songs</p>
+                    <div class="bg-purple-950/40 p-4 rounded-2xl border border-purple-500/20 hover:border-fuchsia-400/50 hover:bg-purple-900/50 transition-all duration-300 transform hover:-translate-y-1">
+                        <p class="text-[10px] text-fuchsia-300 uppercase tracking-widest font-bold mb-1 opacity-80">Pet</p>
+                        <p class="font-bold text-white text-lg flex items-center">🐕 Max</p>
                     </div>
-                    <div class="bg-fuchsia-900/30 p-3 rounded-xl border border-fuchsia-500/30 hover:bg-fuchsia-900/50 transition-colors sm:col-span-2 shadow-[0_0_15px_rgba(192,38,211,0.2)]">
-                        <p class="text-xs text-fuchsia-400 uppercase tracking-widest font-bold mb-1">Favourite Person</p>
-                        <p class="font-medium text-white text-xl">🥰 Sweety</p>
+                    <div class="bg-gradient-to-br from-fuchsia-900/50 to-purple-900/50 p-4 rounded-2xl border border-fuchsia-400/40 hover:border-fuchsia-300 hover:shadow-[0_0_20px_rgba(217,70,239,0.3)] transition-all duration-300 transform hover:-translate-y-1 sm:col-span-2 lg:col-span-1">
+                        <p class="text-[10px] text-pink-300 uppercase tracking-widest font-bold mb-1 opacity-90">Person</p>
+                        <p class="font-bold text-white text-xl flex items-center">🥰 Sweety</p>
                     </div>
                 </div>
             </div>
 
             <!-- Personalized Message Block -->
-            <div class="relative w-full bg-gradient-to-br from-purple-900/40 to-black/60 border border-purple-400/30 rounded-2xl p-6 sm:p-8 shadow-xl text-center before:absolute before:inset-0 before:border before:border-white/10 before:rounded-2xl before:pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto text-purple-400 mb-4 opacity-50" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-                </svg>
+            <div class="relative w-full bg-gradient-to-br from-purple-900/30 to-black border border-fuchsia-500/30 rounded-3xl p-8 sm:p-10 shadow-xl text-center mb-12">
+                <!-- Glowing corner accents -->
+                <div class="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-fuchsia-500/50 rounded-tl-3xl"></div>
+                <div class="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-purple-500/50 rounded-br-3xl"></div>
+
+                <div class="inline-block p-3 rounded-full bg-purple-500/10 border border-purple-500/30 mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-fuchsia-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd" />
+                    </svg>
+                </div>
                 
-                <p class="text-gray-200 text-base sm:text-lg leading-relaxed font-light italic mb-4">
-                    Happy Birthday to You,<br>
-                    I want to say something to you, said many times I think you felt bored by these words:
+                <p class="text-purple-100 text-lg sm:text-xl leading-relaxed font-light italic mb-6">
+                    "Happy Birthday to You, I want to say something to you said many times I think you felt bored by these words"
                 </p>
-                <div class="py-3 px-4 bg-black/40 rounded-lg border-l-4 border-fuchsia-500 mb-4">
-                    <p class="text-fuchsia-200 font-medium text-lg">
+                <div class="py-4 px-6 bg-black/60 rounded-2xl border-l-4 border-fuchsia-500 mb-6 shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]">
+                    <p class="text-fuchsia-300 font-bold text-lg sm:text-xl tracking-wide">
                         "You have a Wonderful Life", "Be positive", "You Can do".
                     </p>
                 </div>
-                <p class="text-purple-100 text-lg sm:text-xl font-semibold leading-relaxed">
-                    Believe in yourself, you can reach your goal. <br class="hidden sm:block" />
-                    All the Best to you, Happy Birthday! 🎂🥳
+                <p class="text-white text-xl sm:text-2xl font-bold leading-relaxed drop-shadow-md">
+                    Believe yourself you can reach your goal, <br class="hidden sm:block" />
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-purple-400">All the Best to you, Happy Birthday</span> 🎂🎉
                 </p>
             </div>
 
-            <div class="w-full mt-12 mb-4">
-                <h2 class="text-2xl font-bold mb-8 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-fuchsia-400 drop-shadow-[0_0_8px_rgba(216,180,254,0.4)] flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-fuchsia-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
-                    </svg>
-                    Heart to Heart
-                </h2>
+            <div class="w-full">
+                <div class="flex items-center justify-center space-x-4 mb-10">
+                    <div class="h-[1px] w-12 bg-gradient-to-r from-transparent to-fuchsia-500"></div>
+                    <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-fuchsia-400 drop-shadow-[0_0_10px_rgba(216,180,254,0.3)]">
+                        Heart to Heart
+                    </h2>
+                    <div class="h-[1px] w-12 bg-gradient-to-l from-transparent to-fuchsia-500"></div>
+                </div>
                 
-                <div class="space-y-6 flex flex-col">
-                    <!-- Chat Pair 1 -->
-                    <div class="flex flex-col space-y-2">
-                        <div class="self-start bg-black/50 border border-purple-500/30 rounded-2xl rounded-tl-sm p-4 max-w-[90%] sm:max-w-[80%] shadow-md">
-                            <p class="text-xs text-purple-400 font-bold mb-1 uppercase tracking-wider">Her Doubt (Sweety)</p>
-                            <p class="text-gray-300 text-sm sm:text-base">Like I want to be with her only in studies, job</p>
+                <div class="space-y-8 flex flex-col w-full text-left">
+                    
+                    <!-- Chat Pair 1: Sweety -->
+                    <div class="flex flex-col space-y-3">
+                        <div class="self-start relative group max-w-[85%] sm:max-w-[75%]">
+                            <span class="absolute -top-3 left-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-[#0a0014] px-2 rounded-full z-10 border border-gray-700">Sweety</span>
+                            <div class="bg-[#111111] border border-gray-800 rounded-2xl rounded-tl-sm p-4 pt-5 shadow-lg relative">
+                                <p class="text-gray-300 text-sm sm:text-base">Like I want to be with her only in studies, job</p>
+                            </div>
                         </div>
-                        <div class="self-end bg-gradient-to-br from-purple-900/60 to-fuchsia-900/40 border border-fuchsia-500/40 rounded-2xl rounded-tr-sm p-4 max-w-[90%] sm:max-w-[80%] shadow-[0_0_15px_rgba(192,38,211,0.15)] text-right">
-                            <p class="text-xs text-fuchsia-400 font-bold mb-1 uppercase tracking-wider">My Answer</p>
-                            <p class="text-white text-sm sm:text-base font-medium">Possible if you do hard work ✨</p>
-                        </div>
-                    </div>
-
-                    <!-- Chat Pair 2 -->
-                    <div class="flex flex-col space-y-2">
-                        <div class="self-start bg-black/50 border border-purple-500/30 rounded-2xl rounded-tl-sm p-4 max-w-[90%] sm:max-w-[80%] shadow-md">
-                            <p class="text-xs text-purple-400 font-bold mb-1 uppercase tracking-wider">Her Doubt (Family)</p>
-                            <p class="text-gray-300 text-sm sm:text-base">They scold me alot after 10th results</p>
-                        </div>
-                        <div class="self-end bg-gradient-to-br from-purple-900/60 to-fuchsia-900/40 border border-fuchsia-500/40 rounded-2xl rounded-tr-sm p-4 max-w-[90%] sm:max-w-[80%] shadow-[0_0_15px_rgba(192,38,211,0.15)] text-right">
-                            <p class="text-xs text-fuchsia-400 font-bold mb-1 uppercase tracking-wider">My Answer</p>
-                            <p class="text-white text-sm sm:text-base font-medium">Try hard be focused you will get good results 💪</p>
+                        <div class="self-end relative group max-w-[85%] sm:max-w-[75%]">
+                            <span class="absolute -top-3 right-3 text-[10px] font-bold text-fuchsia-300 uppercase tracking-wider bg-[#1a0033] px-2 rounded-full z-10 border border-fuchsia-500/50">My Answer</span>
+                            <div class="bg-gradient-to-br from-purple-800 to-fuchsia-900 border border-fuchsia-500/50 rounded-2xl rounded-tr-sm p-4 pt-5 glow-bubble text-right">
+                                <p class="text-white text-sm sm:text-base font-medium">Possible if you do hard work ✨</p>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Chat Pair 3 -->
-                    <div class="flex flex-col space-y-2">
-                        <div class="self-start bg-black/50 border border-purple-500/30 rounded-2xl rounded-tl-sm p-4 max-w-[90%] sm:max-w-[80%] shadow-md">
-                            <p class="text-xs text-purple-400 font-bold mb-1 uppercase tracking-wider">Her Doubt (Studies)</p>
-                            <p class="text-gray-300 text-sm sm:text-base">After 10th became lazy and overthinking</p>
+                    <!-- Chat Pair 2: Family -->
+                    <div class="flex flex-col space-y-3">
+                        <div class="self-start relative group max-w-[85%] sm:max-w-[75%]">
+                            <span class="absolute -top-3 left-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-[#0a0014] px-2 rounded-full z-10 border border-gray-700">Family</span>
+                            <div class="bg-[#111111] border border-gray-800 rounded-2xl rounded-tl-sm p-4 pt-5 shadow-lg relative">
+                                <p class="text-gray-300 text-sm sm:text-base">They scold me a lot after 10th results</p>
+                            </div>
                         </div>
-                        <div class="self-end bg-gradient-to-br from-purple-900/60 to-fuchsia-900/40 border border-fuchsia-500/40 rounded-2xl rounded-tr-sm p-4 max-w-[90%] sm:max-w-[80%] shadow-[0_0_15px_rgba(192,38,211,0.15)] text-right">
-                            <p class="text-xs text-fuchsia-400 font-bold mb-1 uppercase tracking-wider">My Answer</p>
-                            <p class="text-white text-sm sm:text-base font-medium">Try hard be focused you will get good results 📚</p>
-                        </div>
-                    </div>
-
-                    <!-- Chat Pair 4 -->
-                    <div class="flex flex-col space-y-2">
-                        <div class="self-start bg-black/50 border border-purple-500/30 rounded-2xl rounded-tl-sm p-4 max-w-[90%] sm:max-w-[80%] shadow-md">
-                            <p class="text-xs text-purple-400 font-bold mb-1 uppercase tracking-wider">Her Doubt (Dreams)</p>
-                            <p class="text-gray-300 text-sm sm:text-base">To go out of this country or state enjoy</p>
-                        </div>
-                        <div class="self-end bg-gradient-to-br from-purple-900/60 to-fuchsia-900/40 border border-fuchsia-500/40 rounded-2xl rounded-tr-sm p-4 max-w-[90%] sm:max-w-[80%] shadow-[0_0_15px_rgba(192,38,211,0.15)] text-right">
-                            <p class="text-xs text-fuchsia-400 font-bold mb-1 uppercase tracking-wider">My Answer</p>
-                            <p class="text-white text-sm sm:text-base font-medium">It is possible If you never look back ✈️</p>
+                        <div class="self-end relative group max-w-[85%] sm:max-w-[75%]">
+                            <span class="absolute -top-3 right-3 text-[10px] font-bold text-fuchsia-300 uppercase tracking-wider bg-[#1a0033] px-2 rounded-full z-10 border border-fuchsia-500/50">My Answer</span>
+                            <div class="bg-gradient-to-br from-purple-800 to-fuchsia-900 border border-fuchsia-500/50 rounded-2xl rounded-tr-sm p-4 pt-5 glow-bubble text-right">
+                                <p class="text-white text-sm sm:text-base font-medium">Try hard be focused you will get good results 💪</p>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Chat Pair 5 -->
-                    <div class="flex flex-col space-y-2">
-                        <div class="self-start bg-black/50 border border-purple-500/30 rounded-2xl rounded-tl-sm p-4 max-w-[90%] sm:max-w-[80%] shadow-md">
-                            <p class="text-xs text-purple-400 font-bold mb-1 uppercase tracking-wider">Her Doubt (Goals)</p>
-                            <p class="text-gray-300 text-sm sm:text-base">Own home and more should do</p>
+                    <!-- Chat Pair 3: Studies -->
+                    <div class="flex flex-col space-y-3">
+                        <div class="self-start relative group max-w-[85%] sm:max-w-[75%]">
+                            <span class="absolute -top-3 left-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-[#0a0014] px-2 rounded-full z-10 border border-gray-700">Studies</span>
+                            <div class="bg-[#111111] border border-gray-800 rounded-2xl rounded-tl-sm p-4 pt-5 shadow-lg relative">
+                                <p class="text-gray-300 text-sm sm:text-base">After 10th became lazy and overthinking</p>
+                            </div>
                         </div>
-                        <div class="self-end bg-gradient-to-br from-purple-900/60 to-fuchsia-900/40 border border-fuchsia-500/40 rounded-2xl rounded-tr-sm p-4 max-w-[90%] sm:max-w-[80%] shadow-[0_0_15px_rgba(192,38,211,0.15)] text-right">
-                            <p class="text-xs text-fuchsia-400 font-bold mb-1 uppercase tracking-wider">My Answer</p>
-                            <p class="text-white text-sm sm:text-base font-medium">All the best 🏡✨</p>
+                        <div class="self-end relative group max-w-[85%] sm:max-w-[75%]">
+                            <span class="absolute -top-3 right-3 text-[10px] font-bold text-fuchsia-300 uppercase tracking-wider bg-[#1a0033] px-2 rounded-full z-10 border border-fuchsia-500/50">My Answer</span>
+                            <div class="bg-gradient-to-br from-purple-800 to-fuchsia-900 border border-fuchsia-500/50 rounded-2xl rounded-tr-sm p-4 pt-5 glow-bubble text-right">
+                                <p class="text-white text-sm sm:text-base font-medium">Try hard be focused you will get good results 📚</p>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Chat Pair 6 -->
-                    <div class="flex flex-col space-y-2">
-                        <div class="self-start bg-black/50 border border-purple-500/30 rounded-2xl rounded-tl-sm p-4 max-w-[90%] sm:max-w-[80%] shadow-md">
-                            <p class="text-xs text-purple-400 font-bold mb-1 uppercase tracking-wider">Her Doubt (About Myself)</p>
-                            <p class="text-gray-300 text-sm sm:text-base">I am ugly. Everyone hates me</p>
+                    <!-- Chat Pair 4: Dreams -->
+                    <div class="flex flex-col space-y-3">
+                        <div class="self-start relative group max-w-[85%] sm:max-w-[75%]">
+                            <span class="absolute -top-3 left-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-[#0a0014] px-2 rounded-full z-10 border border-gray-700">Dreams</span>
+                            <div class="bg-[#111111] border border-gray-800 rounded-2xl rounded-tl-sm p-4 pt-5 shadow-lg relative">
+                                <p class="text-gray-300 text-sm sm:text-base">To go out of this country or state enjoy</p>
+                            </div>
                         </div>
-                        <div class="self-end bg-gradient-to-br from-purple-900/60 to-fuchsia-900/40 border border-fuchsia-500/40 rounded-2xl rounded-tr-sm p-4 max-w-[90%] sm:max-w-[80%] shadow-[0_0_15px_rgba(192,38,211,0.15)] text-right">
-                            <p class="text-xs text-fuchsia-400 font-bold mb-1 uppercase tracking-wider">My Answer</p>
-                            <p class="text-white text-sm sm:text-base font-medium">Who said ? You Are Beauty By Heart ❤️</p>
+                        <div class="self-end relative group max-w-[85%] sm:max-w-[75%]">
+                            <span class="absolute -top-3 right-3 text-[10px] font-bold text-fuchsia-300 uppercase tracking-wider bg-[#1a0033] px-2 rounded-full z-10 border border-fuchsia-500/50">My Answer</span>
+                            <div class="bg-gradient-to-br from-purple-800 to-fuchsia-900 border border-fuchsia-500/50 rounded-2xl rounded-tr-sm p-4 pt-5 glow-bubble text-right">
+                                <p class="text-white text-sm sm:text-base font-medium">It is possible If you never look back ✈️</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Pair 5: Goals -->
+                    <div class="flex flex-col space-y-3">
+                        <div class="self-start relative group max-w-[85%] sm:max-w-[75%]">
+                            <span class="absolute -top-3 left-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-[#0a0014] px-2 rounded-full z-10 border border-gray-700">Goals</span>
+                            <div class="bg-[#111111] border border-gray-800 rounded-2xl rounded-tl-sm p-4 pt-5 shadow-lg relative">
+                                <p class="text-gray-300 text-sm sm:text-base">Own home and more should do</p>
+                            </div>
+                        </div>
+                        <div class="self-end relative group max-w-[85%] sm:max-w-[75%]">
+                            <span class="absolute -top-3 right-3 text-[10px] font-bold text-fuchsia-300 uppercase tracking-wider bg-[#1a0033] px-2 rounded-full z-10 border border-fuchsia-500/50">My Answer</span>
+                            <div class="bg-gradient-to-br from-purple-800 to-fuchsia-900 border border-fuchsia-500/50 rounded-2xl rounded-tr-sm p-4 pt-5 glow-bubble text-right">
+                                <p class="text-white text-sm sm:text-base font-medium">All the best 🏡</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Pair 6: About Myself -->
+                    <div class="flex flex-col space-y-3">
+                        <div class="self-start relative group max-w-[85%] sm:max-w-[75%]">
+                            <span class="absolute -top-3 left-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-[#0a0014] px-2 rounded-full z-10 border border-gray-700">About myself</span>
+                            <div class="bg-[#111111] border border-gray-800 rounded-2xl rounded-tl-sm p-4 pt-5 shadow-lg relative">
+                                <p class="text-gray-300 text-sm sm:text-base">I am ugly Everyone hates me</p>
+                            </div>
+                        </div>
+                        <div class="self-end relative group max-w-[85%] sm:max-w-[75%]">
+                            <span class="absolute -top-3 right-3 text-[10px] font-bold text-fuchsia-300 uppercase tracking-wider bg-[#1a0033] px-2 rounded-full z-10 border border-fuchsia-500/50">My Answer</span>
+                            <div class="bg-gradient-to-br from-purple-800 to-fuchsia-900 border border-fuchsia-500/50 rounded-2xl rounded-tr-sm p-4 pt-5 glow-bubble text-right shadow-[0_0_25px_rgba(217,70,239,0.4)]">
+                                <p class="text-white text-base sm:text-lg font-bold">Who said ? You Are Beauty By Heart ❤️</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -283,8 +445,42 @@
             const surpriseSection = document.getElementById('surprise-section');
             const errorMsg = document.getElementById('error-msg');
             const mainCard = document.getElementById('main-card');
+            const sparkleContainer = document.getElementById('sparkle-container');
 
-            // Handle Login Submission
+            // --- SPARKLE GENERATOR ---
+            // Creates tiny floating glowing dots in the background
+            function createSparkles() {
+                const count = 40; // Number of sparkles
+                for (let i = 0; i < count; i++) {
+                    let sparkle = document.createElement('div');
+                    sparkle.classList.add('sparkle');
+                    
+                    // Random positioning and sizing
+                    let size = Math.random() * 3 + 1;
+                    sparkle.style.width = `${size}px`;
+                    sparkle.style.height = `${size}px`;
+                    sparkle.style.left = `${Math.random() * 100}vw`;
+                    
+                    // Randomize animation durations and delays to look natural
+                    let floatDuration = Math.random() * 10 + 10; // 10s to 20s
+                    let twinkleDuration = Math.random() * 1 + 0.5; // 0.5s to 1.5s
+                    let delay = Math.random() * 10;
+                    
+                    sparkle.style.animationDuration = `${floatDuration}s, ${twinkleDuration}s`;
+                    sparkle.style.animationDelay = `${delay}s, ${delay}s`;
+                    
+                    // Occasionally make a pink/fuchsia sparkle
+                    if (Math.random() > 0.7) {
+                        sparkle.style.background = '#f0abfc';
+                        sparkle.style.boxShadow = '0 0 10px #f0abfc, 0 0 20px #d946ef';
+                    }
+
+                    sparkleContainer.appendChild(sparkle);
+                }
+            }
+            createSparkles();
+
+            // --- LOGIN LOGIC ---
             loginForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 
@@ -293,89 +489,99 @@
                 
                 // VALIDATION CHECK
                 // Target Name: DUGINI VAISHALI
-                // Target DOB: 2007-09-20 (20/Sep/2007)
+                // Target DOB: 2007-09-20 
                 if (nameInput === 'DUGINI VAISHALI' && dobInput === '2007-09-20') {
-                    // Success! Hide error if it was shown
+                    
+                    // Hide error
                     errorMsg.classList.remove('opacity-100');
                     errorMsg.classList.add('opacity-0');
                     
-                    // Transition: Fade out login
-                    loginSection.classList.remove('opacity-100', 'scale-100');
-                    loginSection.classList.add('opacity-0', 'scale-95');
+                    // 1. Fade out login section
+                    loginSection.classList.remove('section-visible');
+                    loginSection.classList.add('section-hidden');
                     
-                    // Expand card height slightly for the content
-                    mainCard.classList.remove('max-w-md');
-                    mainCard.classList.add('max-w-2xl');
+                    // 2. Expand card horizontally/vertically for new content
+                    mainCard.classList.remove('max-w-xl');
+                    mainCard.classList.add('max-w-3xl');
 
+                    // 3. Wait for login to fade out, then swap visibility
                     setTimeout(() => {
-                        // Hide login entirely from flow
-                        loginSection.classList.add('hidden');
+                        // Display none on login, display block on surprise
+                        loginSection.style.display = 'none';
+                        surpriseSection.style.display = 'flex';
                         
-                        // Display surprise section in flow, then fade it in
-                        surpriseSection.classList.remove('hidden');
-                        
-                        // Slight delay to allow display:block to render before transitioning opacity/transform
+                        // 4. Slight delay to allow DOM to register display:flex before animating opacity
                         setTimeout(() => {
-                            surpriseSection.classList.remove('opacity-0', 'scale-95');
-                            surpriseSection.classList.add('opacity-100', 'scale-100');
+                            surpriseSection.classList.remove('section-hidden');
+                            surpriseSection.classList.add('section-visible');
                             
-                            // Trigger Confetti!
+                            // Trigger Confetti Celebration!
                             fireConfetti();
                         }, 50);
-                    }, 700); // Wait for login fade out
+                    }, 800); // matches CSS transition duration (0.8s)
                 } else {
-                    // Fail! Show error message
+                    // Fail! Show error
                     errorMsg.classList.remove('opacity-0');
                     errorMsg.classList.add('opacity-100');
                     
-                    // Add a little shake animation to the form for feedback
-                    loginForm.classList.add('animate-pulse');
-                    setTimeout(() => {
-                        loginForm.classList.remove('animate-pulse');
-                    }, 500);
+                    // Error Shake Animation
+                    loginForm.style.transform = 'translateX(-10px)';
+                    setTimeout(() => loginForm.style.transform = 'translateX(10px)', 100);
+                    setTimeout(() => loginForm.style.transform = 'translateX(-10px)', 200);
+                    setTimeout(() => loginForm.style.transform = 'translateX(10px)', 300);
+                    setTimeout(() => loginForm.style.transform = 'translateX(0)', 400);
                 }
             });
 
-            // Function to trigger a spectacular confetti explosion
+            // --- CONFETTI EXPLOSION ---
             function fireConfetti() {
-                const duration = 5000; // 5 seconds of confetti
+                const duration = 6000; 
                 const end = Date.now() + duration;
 
+                // Color palette matching the theme
+                const colors = ['#a855f7', '#d946ef', '#f0abfc', '#ffffff', '#7e22ce'];
+
                 (function frame() {
-                    // Launch from left edge
+                    // Left cannon
                     confetti({
                         particleCount: 5,
                         angle: 60,
                         spread: 55,
-                        origin: { x: 0 },
-                        colors: ['#a855f7', '#d946ef', '#000000', '#ffffff', '#c026d1'] // Purple, Fuchsia, Black, White
+                        origin: { x: 0, y: 0.8 },
+                        colors: colors,
+                        zIndex: 100
                     });
                     
-                    // Launch from right edge
+                    // Right cannon
                     confetti({
                         particleCount: 5,
                         angle: 120,
                         spread: 55,
-                        origin: { x: 1 },
-                        colors: ['#a855f7', '#d946ef', '#000000', '#ffffff', '#c026d1']
+                        origin: { x: 1, y: 0.8 },
+                        colors: colors,
+                        zIndex: 100
                     });
 
-                    // Keep firing until duration ends
                     if (Date.now() < end) {
                         requestAnimationFrame(frame);
                     }
                 }());
                 
-                // Add an extra center burst
-                setTimeout(() => {
+                // Extra big center bursts
+                setTimeout(() => burst(0.5, 0.4), 500);
+                setTimeout(() => burst(0.3, 0.5), 1500);
+                setTimeout(() => burst(0.7, 0.5), 2500);
+
+                function burst(x, y) {
                     confetti({
-                        particleCount: 100,
+                        particleCount: 150,
                         spread: 100,
-                        origin: { y: 0.6 },
-                        colors: ['#a855f7', '#d946ef', '#000000', '#ffffff', '#c026d1'],
-                        zIndex: 100
+                        origin: { x: x, y: y },
+                        colors: colors,
+                        zIndex: 100,
+                        startVelocity: 40
                     });
-                }, 1000);
+                }
             }
         });
     </script>
